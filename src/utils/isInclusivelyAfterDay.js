@@ -1,8 +1,8 @@
-import moment from 'moment';
-
-import isBeforeDay from './isBeforeDay';
+import addDays from 'date-fns/addDays';
+import isDate from 'date-fns/isDate';
+import isAfterDay from './isAfterDay';
 
 export default function isInclusivelyAfterDay(a, b) {
-  if (!moment.isMoment(a) || !moment.isMoment(b)) return false;
-  return !isBeforeDay(a, b);
+  if (!isDate(a) || !isDate(b)) return false;
+  return isAfterDay(addDays(a, 1), b);
 }

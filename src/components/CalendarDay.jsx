@@ -1,11 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import momentPropTypes from 'react-moment-proptypes';
 import { forbidExtraProps, nonNegativeInteger } from 'airbnb-prop-types';
 import { css, withStyles, withStylesPropTypes } from 'react-with-styles';
-import moment from 'moment';
 import raf from 'raf';
 
+import format from 'date-fns/format';
+import addHours from 'date-fns/addHours';
+import startOfDay from 'date-fns/startOfDay';
 import { CalendarDayPhrases } from '../defaultPhrases';
 import getPhrasePropTypes from '../utils/getPhrasePropTypes';
 import getCalendarDaySettings from '../utils/getCalendarDaySettings';
@@ -15,7 +16,7 @@ import { DAY_SIZE } from '../constants';
 
 const propTypes = forbidExtraProps({
   ...withStylesPropTypes,
-  day: momentPropTypes.momentObj,
+  day: PropTypes.object,
   daySize: nonNegativeInteger,
   isOutsideDay: PropTypes.bool,
   modifiers: ModifiersShape,
@@ -32,7 +33,7 @@ const propTypes = forbidExtraProps({
 });
 
 const defaultProps = {
-  day: moment(),
+  day: addHours(startOfDay(new Date()), 12),
   daySize: DAY_SIZE,
   isOutsideDay: false,
   modifiers: new Set(),
@@ -42,12 +43,13 @@ const defaultProps = {
   onDayMouseEnter() {},
   onDayMouseLeave() {},
   renderDayContents: null,
-  ariaLabelFormat: 'dddd, LL',
+  ariaLabelFormat: 'eee, PP',
 
   // internationalization
   phrases: CalendarDayPhrases,
 };
 
+/** @extends React.Component */
 class CalendarDay extends React.PureComponent {
   constructor(...args) {
     super(...args);
@@ -154,7 +156,6 @@ class CalendarDay extends React.PureComponent {
         role="button" // eslint-disable-line jsx-a11y/no-noninteractive-element-to-interactive-role
         ref={this.setButtonRef}
         aria-disabled={modifiers.has('blocked')}
-        {...(modifiers.has('today') ? { 'aria-current': 'date' } : {})}
         aria-label={ariaLabel}
         onMouseEnter={(e) => { this.onDayMouseEnter(day, e); }}
         onMouseLeave={(e) => { this.onDayMouseLeave(day, e); }}
@@ -163,7 +164,7 @@ class CalendarDay extends React.PureComponent {
         onKeyDown={(e) => { this.onKeyDown(day, e); }}
         tabIndex={tabIndex}
       >
-        {renderDayContents ? renderDayContents(day, modifiers) : day.format('D')}
+        {renderDayContents ? renderDayContents(day, modifiers) : format(day, 'd')}
       </td>
     );
   }

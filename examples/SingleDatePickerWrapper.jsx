@@ -1,20 +1,18 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import momentPropTypes from 'react-moment-proptypes';
-import moment from 'moment';
 import omit from 'lodash/omit';
 
 import SingleDatePicker from '../src/components/SingleDatePicker';
 
 import { SingleDatePickerPhrases } from '../src/defaultPhrases';
 import SingleDatePickerShape from '../src/shapes/SingleDatePickerShape';
-import { HORIZONTAL_ORIENTATION, ANCHOR_LEFT, OPEN_DOWN } from '../src/constants';
+import { HORIZONTAL_ORIENTATION, ANCHOR_LEFT } from '../src/constants';
 import isInclusivelyAfterDay from '../src/utils/isInclusivelyAfterDay';
 
 const propTypes = {
   // example props for the demo
   autoFocus: PropTypes.bool,
-  initialDate: momentPropTypes.momentObj,
+  initialDate: PropTypes.object,
 
   ...omit(SingleDatePickerShape, [
     'date',
@@ -56,7 +54,6 @@ const defaultProps = {
   keepOpenOnDateSelect: false,
   reopenPickerOnClearDate: false,
   isRTL: false,
-  openDirection: OPEN_DOWN,
 
   // navigation related props
   navPrev: null,
@@ -70,12 +67,12 @@ const defaultProps = {
   renderDayContents: null,
   enableOutsideDays: false,
   isDayBlocked: () => false,
-  isOutsideRange: day => !isInclusivelyAfterDay(day, moment()),
+  isOutsideRange: day => !isInclusivelyAfterDay(day, new Date()),
   isDayHighlighted: () => {},
 
   // internationalization props
-  displayFormat: () => moment.localeData().longDateFormat('L'),
-  monthFormat: 'MMMM YYYY',
+  displayFormat: () => 'P',
+  monthFormat: 'MMMM yyyy',
   phrases: SingleDatePickerPhrases,
 };
 

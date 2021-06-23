@@ -1,11 +1,10 @@
 /* eslint-disable react/no-unused-prop-types */
 import React from 'react';
 import PropTypes from 'prop-types';
-import momentPropTypes from 'react-moment-proptypes';
 import { forbidExtraProps } from 'airbnb-prop-types';
-import moment from 'moment';
 import omit from 'lodash/omit';
 
+import format from 'date-fns/format';
 import DayPickerSingleDateController from '../src/components/DayPickerSingleDateController';
 
 import ScrollableOrientationShape from '../src/shapes/ScrollableOrientationShape';
@@ -16,10 +15,9 @@ import isInclusivelyAfterDay from '../src/utils/isInclusivelyAfterDay';
 const propTypes = forbidExtraProps({
   // example props for the demo
   autoFocus: PropTypes.bool,
-  initialDate: momentPropTypes.momentObj,
+  initialDate: PropTypes.object,
   showInput: PropTypes.bool,
 
-  allowUnselect: PropTypes.bool,
   keepOpenOnDateSelect: PropTypes.bool,
   isOutsideRange: PropTypes.func,
   isDayBlocked: PropTypes.func,
@@ -57,11 +55,10 @@ const defaultProps = {
   showInput: false,
 
   // day presentation and interaction related props
-  allowUnselect: false,
   renderCalendarDay: undefined,
   renderDayContents: null,
   isDayBlocked: () => false,
-  isOutsideRange: day => !isInclusivelyAfterDay(day, moment()),
+  isOutsideRange: (day) => !isInclusivelyAfterDay(day, new Date()),
   isDayHighlighted: () => false,
   enableOutsideDays: false,
 
@@ -84,7 +81,7 @@ const defaultProps = {
   onNextMonthClick() {},
 
   // internationalization
-  monthFormat: 'MMMM YYYY',
+  monthFormat: 'MMMM yyyy',
 };
 
 class DayPickerSingleDateControllerWrapper extends React.Component {
@@ -119,7 +116,7 @@ class DayPickerSingleDateControllerWrapper extends React.Component {
       'showInput',
     ]);
 
-    const dateString = date && date.format('YYYY-MM-DD');
+    const dateString = date && format(date, 'yyyy-MM-dd');
 
     return (
       <div>

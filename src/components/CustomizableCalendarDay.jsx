@@ -1,11 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import momentPropTypes from 'react-moment-proptypes';
 import { forbidExtraProps, nonNegativeInteger, or } from 'airbnb-prop-types';
 import { css, withStyles, withStylesPropTypes } from 'react-with-styles';
-import moment from 'moment';
 import raf from 'raf';
 
+import format from 'date-fns/format';
+import addHours from 'date-fns/addHours';
+import startOfDay from 'date-fns/startOfDay';
 import { CalendarDayPhrases } from '../defaultPhrases';
 import getPhrasePropTypes from '../utils/getPhrasePropTypes';
 import getCalendarDaySettings from '../utils/getCalendarDaySettings';
@@ -40,7 +41,7 @@ const DayStyleShape = PropTypes.shape({
 
 const propTypes = forbidExtraProps({
   ...withStylesPropTypes,
-  day: momentPropTypes.momentObj,
+  day: PropTypes.object,
   daySize: nonNegativeInteger,
   isOutsideDay: PropTypes.bool,
   modifiers: PropTypes.instanceOf(Set),
@@ -178,7 +179,7 @@ export const selectedStyles = {
 };
 
 const defaultProps = {
-  day: moment(),
+  day: addHours(startOfDay(new Date()), 12),
   daySize: DAY_SIZE,
   isOutsideDay: false,
   modifiers: new Set(),
@@ -214,6 +215,7 @@ const defaultProps = {
   phrases: CalendarDayPhrases,
 };
 
+/** @extends React.Component */
 class CustomizableCalendarDay extends React.PureComponent {
   constructor(...args) {
     super(...args);
@@ -351,7 +353,7 @@ class CustomizableCalendarDay extends React.PureComponent {
         onKeyDown={(e) => { this.onKeyDown(day, e); }}
         tabIndex={tabIndex}
       >
-        {renderDayContents ? renderDayContents(day, modifiers) : day.format('D')}
+        {renderDayContents ? renderDayContents(day, modifiers) : format(day, 'd')}
       </td>
     );
   }

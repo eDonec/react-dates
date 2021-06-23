@@ -1,13 +1,13 @@
 import React from 'react';
-import moment from 'moment';
 import { css, withStyles, withStylesPropTypes } from 'react-with-styles';
 import { Portal } from 'react-portal';
 import { forbidExtraProps } from 'airbnb-prop-types';
 import { addEventListener } from 'consolidated-events';
 import isTouchDevice from 'is-touch-device';
 import OutsideClickHandler from 'react-outside-click-handler';
-import { darken } from 'color2k';
 
+import addHours from 'date-fns/addHours';
+import startOfDay from 'date-fns/startOfDay';
 import DateRangePickerShape from '../shapes/DateRangePickerShape';
 import { DateRangePickerPhrases } from '../defaultPhrases';
 
@@ -55,8 +55,6 @@ const defaultProps = {
   endDatePlaceholderText: 'End Date',
   startDateAriaLabel: undefined,
   endDateAriaLabel: undefined,
-  startDateTitleText: undefined,
-  endDateTitleText: undefined,
   startDateOffset: undefined,
   endDateOffset: undefined,
   disabled: false,
@@ -121,16 +119,17 @@ const defaultProps = {
   minimumNights: 1,
   enableOutsideDays: false,
   isDayBlocked: () => false,
-  isOutsideRange: (day) => !isInclusivelyAfterDay(day, moment()),
+  isOutsideRange: (day) => !isInclusivelyAfterDay(day, addHours(startOfDay(new Date()), 12)),
   isDayHighlighted: () => false,
   minDate: undefined,
   maxDate: undefined,
 
   // internationalization
-  displayFormat: () => moment.localeData().longDateFormat('L'),
-  monthFormat: 'MMMM YYYY',
-  weekDayFormat: 'dd',
+  displayFormat: () => 'P',
+  monthFormat: 'MMMM yyyy',
+  weekDayFormat: 'eee',
   phrases: DateRangePickerPhrases,
+  locale: null,
   dayAriaLabelFormat: undefined,
 };
 
@@ -449,9 +448,9 @@ class DateRangePicker extends React.PureComponent {
       dayAriaLabelFormat,
       isRTL,
       weekDayFormat,
+      locale,
       styles,
       verticalHeight,
-      noBorder,
       transitionDuration,
       verticalSpacing,
       horizontalMonthPadding,
@@ -466,7 +465,7 @@ class DateRangePicker extends React.PureComponent {
       ? this.onOutsideClick
       : undefined;
     const initialVisibleMonthThunk = initialVisibleMonth || (
-      () => (startDate || endDate || moment())
+      () => (startDate || endDate || addHours(startOfDay(new Date()), 12))
     );
 
     const closeIcon = customCloseIcon || (
@@ -548,8 +547,8 @@ class DateRangePicker extends React.PureComponent {
           isRTL={isRTL}
           firstDayOfWeek={firstDayOfWeek}
           weekDayFormat={weekDayFormat}
+          locale={locale}
           verticalHeight={verticalHeight}
-          noBorder={noBorder}
           transitionDuration={transitionDuration}
           disabled={disabled}
           horizontalMonthPadding={horizontalMonthPadding}
@@ -577,12 +576,10 @@ class DateRangePicker extends React.PureComponent {
       startDateId,
       startDatePlaceholderText,
       startDateAriaLabel,
-      startDateTitleText,
       endDate,
       endDateId,
       endDatePlaceholderText,
       endDateAriaLabel,
-      endDateTitleText,
       focusedInput,
       screenReaderInputMessage,
       showClearDates,
@@ -613,6 +610,7 @@ class DateRangePicker extends React.PureComponent {
       small,
       regular,
       styles,
+      locale,
     } = this.props;
 
     const { isDateRangePickerInputFocused } = this.state;
@@ -628,13 +626,11 @@ class DateRangePicker extends React.PureComponent {
         startDatePlaceholderText={startDatePlaceholderText}
         isStartDateFocused={focusedInput === START_DATE}
         startDateAriaLabel={startDateAriaLabel}
-        startDateTitleText={startDateTitleText}
         endDate={endDate}
         endDateId={endDateId}
         endDatePlaceholderText={endDatePlaceholderText}
         isEndDateFocused={focusedInput === END_DATE}
         endDateAriaLabel={endDateAriaLabel}
-        endDateTitleText={endDateTitleText}
         displayFormat={displayFormat}
         showClearDates={showClearDates}
         showCaret={!withPortal && !withFullScreenPortal && !hideFang}
@@ -667,6 +663,7 @@ class DateRangePicker extends React.PureComponent {
         small={small}
         regular={regular}
         verticalSpacing={verticalSpacing}
+        locale={locale}
       >
         {this.maybeRenderDayPickerWithPortal()}
       </DateRangePickerInputController>
@@ -752,12 +749,12 @@ export default withStyles(({ reactDates: { color, zIndex } }) => ({
     zIndex: zIndex + 2,
 
     ':hover': {
-      color: darken(color.core.grayLighter, 0.1),
+      color: `darken(${color.core.grayLighter}, 10%)`,
       textDecoration: 'none',
     },
 
     ':focus': {
-      color: darken(color.core.grayLighter, 0.1),
+      color: `darken(${color.core.grayLighter}, 10%)`,
       textDecoration: 'none',
     },
   },

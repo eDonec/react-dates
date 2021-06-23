@@ -1,9 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import moment from 'moment';
 
-import momentPropTypes from 'react-moment-proptypes';
 import { forbidExtraProps, nonNegativeInteger } from 'airbnb-prop-types';
+import format from 'date-fns/format';
+import addHours from 'date-fns/addHours';
+import startOfDay from 'date-fns/startOfDay';
+import parse from 'date-fns/parse';
+import parseISO from 'date-fns/parseISO';
+import isValid from 'date-fns/isValid';
 import openDirectionShape from '../shapes/OpenDirectionShape';
 
 import { SingleDatePickerInputPhrases } from '../defaultPhrases';
@@ -14,10 +18,9 @@ import SingleDatePickerInput from './SingleDatePickerInput';
 import IconPositionShape from '../shapes/IconPositionShape';
 import DisabledShape from '../shapes/DisabledShape';
 
-import toMomentObject from '../utils/toMomentObject';
 import toLocalizedDateString from '../utils/toLocalizedDateString';
-
 import isInclusivelyAfterDay from '../utils/isInclusivelyAfterDay';
+import getLocale from '../utils/getLocale';
 
 import {
   ICON_BEFORE_POSITION,
@@ -27,8 +30,8 @@ import {
 const propTypes = forbidExtraProps({
   children: PropTypes.node,
 
-  date: momentPropTypes.momentObj,
-  onDateChange: PropTypes.func.isRequired,
+  date: PropTypes.object,
+  onDateChange: PropTypes.func,
 
   focused: PropTypes.bool,
   onFocusChange: PropTypes.func.isRequired,
@@ -36,7 +39,6 @@ const propTypes = forbidExtraProps({
   id: PropTypes.string.isRequired,
   placeholder: PropTypes.string,
   ariaLabel: PropTypes.string,
-  titleText: PropTypes.string,
   screenReaderMessage: PropTypes.string,
   showClearDate: PropTypes.bool,
   showCaret: PropTypes.bool,
@@ -70,6 +72,7 @@ const propTypes = forbidExtraProps({
 
   // i18n
   phrases: PropTypes.shape(getPhrasePropTypes(SingleDatePickerInputPhrases)),
+  locale: PropTypes.string,
 
   isRTL: PropTypes.bool,
 });
@@ -78,11 +81,11 @@ const defaultProps = {
   children: null,
 
   date: null,
+  onDateChange() {},
   focused: false,
 
   placeholder: '',
   ariaLabel: undefined,
-  titleText: undefined,
   screenReaderMessage: 'Date',
   showClearDate: false,
   showCaret: false,
@@ -100,9 +103,9 @@ const defaultProps = {
 
   keepOpenOnDateSelect: false,
   reopenPickerOnClearDate: false,
-  isOutsideRange: (day) => !isInclusivelyAfterDay(day, moment()),
+  isOutsideRange: (day) => !isInclusivelyAfterDay(day, addHours(startOfDay(new Date()), 12)),
   isDayBlocked: () => false,
-  displayFormat: () => moment.localeData().longDateFormat('L'),
+  displayFormat: () => 'P',
 
   onClose() {},
   onKeyDownArrowDown() {},
@@ -116,6 +119,7 @@ const defaultProps = {
 
   // i18n
   phrases: SingleDatePickerInputPhrases,
+  locale: null,
 
   isRTL: false,
 };
@@ -138,11 +142,22 @@ export default class SingleDatePickerInputController extends React.PureComponent
       onDateChange,
       onFocusChange,
       onClose,
+      displayFormat,
     } = this.props;
-    const newDate = toMomentObject(dateString, this.getDisplayFormat());
 
-    const isValid = newDate && !isOutsideRange(newDate) && !isDayBlocked(newDate);
-    if (isValid) {
+    let newDate;
+    if (typeof displayFormat === 'string' && displayFormat !== 'P') {
+      newDate = parse(dateString, displayFormat, new Date());
+    } else {
+      newDate = parseISO(dateString);
+    }
+
+    if (!isValid(newDate)) {
+      newDate = null;
+    }
+
+    const isNewDateValid = newDate && !isOutsideRange(newDate) && !isDayBlocked(newDate);
+    if (isNewDateValid) {
       onDateChange(newDate);
       if (!keepOpenOnDateSelect) {
         onFocusChange({ focused: false });
@@ -184,10 +199,11 @@ export default class SingleDatePickerInputController extends React.PureComponent
 
   getDateString(date) {
     const displayFormat = this.getDisplayFormat();
+    const { locale } = this.props;
     if (date && displayFormat) {
-      return date && date.format(displayFormat);
+      return format(date, displayFormat, { locale: getLocale(locale) });
     }
-    return toLocalizedDateString(date);
+    return toLocalizedDateString(date, null, locale);
   }
 
   clearDate() {
@@ -204,7 +220,6 @@ export default class SingleDatePickerInputController extends React.PureComponent
       id,
       placeholder,
       ariaLabel,
-      titleText,
       disabled,
       focused,
       isFocused,
@@ -237,7 +252,6 @@ export default class SingleDatePickerInputController extends React.PureComponent
         id={id}
         placeholder={placeholder}
         ariaLabel={ariaLabel}
-        titleText={titleText}
         focused={focused}
         isFocused={isFocused}
         disabled={disabled}

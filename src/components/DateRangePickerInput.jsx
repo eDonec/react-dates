@@ -33,13 +33,11 @@ const propTypes = forbidExtraProps({
   startDateId: PropTypes.string,
   startDatePlaceholderText: PropTypes.string,
   startDateAriaLabel: PropTypes.string,
-  startDateTitleText: PropTypes.string,
   screenReaderMessage: PropTypes.string,
 
   endDateId: PropTypes.string,
   endDatePlaceholderText: PropTypes.string,
   endDateAriaLabel: PropTypes.string,
-  endDateTitleText: PropTypes.string,
 
   onStartDateFocus: PropTypes.func,
   onEndDateFocus: PropTypes.func,
@@ -90,8 +88,6 @@ const defaultProps = {
   endDatePlaceholderText: 'End Date',
   startDateAriaLabel: undefined,
   endDateAriaLabel: undefined,
-  startDateTitleText: undefined,
-  endDateTitleText: undefined,
   screenReaderMessage: '',
   onStartDateFocus() {},
   onEndDateFocus() {},
@@ -145,7 +141,6 @@ function DateRangePickerInput({
   onStartDateFocus,
   onStartDateShiftTab,
   startDateAriaLabel,
-  startDateTitleText,
   endDate,
   endDateId,
   endDatePlaceholderText,
@@ -154,7 +149,6 @@ function DateRangePickerInput({
   onEndDateFocus,
   onEndDateTab,
   endDateAriaLabel,
-  endDateTitleText,
   onKeyDownArrowDown,
   onKeyDownQuestionMark,
   onClearDates,
@@ -182,10 +176,10 @@ function DateRangePickerInput({
   const calendarIcon = customInputIcon || (
     <CalendarIcon {...css(styles.DateRangePickerInput_calendarIcon_svg)} />
   );
-  let arrowIcon = <RightArrow {...css(styles.DateRangePickerInput_arrow_svg)} />;
+
+  let arrowIcon = customArrowIcon || <RightArrow {...css(styles.DateRangePickerInput_arrow_svg)} />;
   if (isRTL) arrowIcon = <LeftArrow {...css(styles.DateRangePickerInput_arrow_svg)} />;
   if (small) arrowIcon = '-';
-  if (customArrowIcon) arrowIcon = customArrowIcon;
 
   const closeIcon = customCloseIcon || (
     <CloseButton
@@ -233,7 +227,6 @@ function DateRangePickerInput({
         id={startDateId}
         placeholder={startDatePlaceholderText}
         ariaLabel={startDateAriaLabel}
-        titleText={startDateTitleText}
         displayValue={startDate}
         screenReaderMessage={screenReaderStartDateText}
         focused={isStartDateFocused}
@@ -255,21 +248,18 @@ function DateRangePickerInput({
 
       {children}
 
-      {
-        <div
-          {...css(styles.DateRangePickerInput_arrow)}
-          aria-hidden="true"
-          role="presentation"
-        >
-          {arrowIcon}
-        </div>
-      }
+      <div
+        {...css(styles.DateRangePickerInput_arrow)}
+        aria-hidden="true"
+        role="presentation"
+      >
+        {arrowIcon}
+      </div>
 
       <DateInput
         id={endDateId}
         placeholder={endDatePlaceholderText}
         ariaLabel={endDateAriaLabel}
-        titleText={endDateTitleText}
         displayValue={endDate}
         screenReaderMessage={screenReaderEndDateText}
         focused={isEndDateFocused}

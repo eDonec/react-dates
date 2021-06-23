@@ -2,11 +2,15 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import momentPropTypes from 'react-moment-proptypes';
 import { forbidExtraProps, mutuallyExclusiveProps, nonNegativeInteger } from 'airbnb-prop-types';
 import { css, withStyles, withStylesPropTypes } from 'react-with-styles';
-import moment from 'moment';
 
+import getMonth from 'date-fns/getMonth';
+import isEqual from 'date-fns/isEqual';
+import format from 'date-fns/format';
+import addHours from 'date-fns/addHours';
+import startOfDay from 'date-fns/startOfDay';
+import isSameDay from 'date-fns/isSameDay';
 import { CalendarDayPhrases } from '../defaultPhrases';
 import getPhrasePropTypes from '../utils/getPhrasePropTypes';
 
@@ -15,8 +19,8 @@ import CalendarDay from './CalendarDay';
 
 import calculateDimension from '../utils/calculateDimension';
 import getCalendarMonthWeeks from '../utils/getCalendarMonthWeeks';
-import isSameDay from '../utils/isSameDay';
 import toISODateString from '../utils/toISODateString';
+import getLocale from '../utils/getLocale';
 
 import ModifiersShape from '../shapes/ModifiersShape';
 import ScrollableOrientationShape from '../shapes/ScrollableOrientationShape';
@@ -30,7 +34,7 @@ import {
 
 const propTypes = forbidExtraProps({
   ...withStylesPropTypes,
-  month: momentPropTypes.momentObj,
+  month: PropTypes.object,
   horizontalMonthPadding: nonNegativeInteger,
   isVisible: PropTypes.bool,
   enableOutsideDays: PropTypes.bool,
@@ -50,17 +54,18 @@ const propTypes = forbidExtraProps({
   setMonthTitleHeight: PropTypes.func,
   verticalBorderSpacing: nonNegativeInteger,
 
-  focusedDate: momentPropTypes.momentObj, // indicates focusable day
+  focusedDate: PropTypes.object, // indicates focusable day
   isFocused: PropTypes.bool, // indicates whether or not to move focus to focusable day
 
   // i18n
   monthFormat: PropTypes.string,
   phrases: PropTypes.shape(getPhrasePropTypes(CalendarDayPhrases)),
   dayAriaLabelFormat: PropTypes.string,
+  locale: PropTypes.string,
 });
 
 const defaultProps = {
-  month: moment(),
+  month: addHours(startOfDay(new Date()), 12),
   horizontalMonthPadding: 13,
   isVisible: true,
   enableOutsideDays: false,
@@ -83,21 +88,28 @@ const defaultProps = {
   isFocused: false,
 
   // i18n
-  monthFormat: 'MMMM YYYY', // english locale
+  monthFormat: 'MMMM yyyy', // english locale
   phrases: CalendarDayPhrases,
   dayAriaLabelFormat: undefined,
   verticalBorderSpacing: undefined,
+  locale: null,
 };
 
+/** @extends React.Component */
 class CalendarMonth extends React.PureComponent {
   constructor(props) {
     super(props);
+
+    const localeData = getLocale(props.locale);
 
     this.state = {
       weeks: getCalendarMonthWeeks(
         props.month,
         props.enableOutsideDays,
-        props.firstDayOfWeek == null ? moment.localeData().firstDayOfWeek() : props.firstDayOfWeek,
+        props.firstDayOfWeek === null
+          ? localeData.options.weekStartsOn : props.firstDayOfWeek,
+        // 0 : props.firstDayOfWeek,
+        props.locale,
       ),
     };
 
@@ -110,14 +122,17 @@ class CalendarMonth extends React.PureComponent {
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
-    const { month, enableOutsideDays, firstDayOfWeek } = nextProps;
+    const {
+      month, enableOutsideDays, firstDayOfWeek, locale,
+    } = nextProps;
+    const localeData = getLocale(locale);
     const {
       month: prevMonth,
       enableOutsideDays: prevEnableOutsideDays,
       firstDayOfWeek: prevFirstDayOfWeek,
     } = this.props;
     if (
-      !month.isSame(prevMonth)
+      !isEqual(month, prevMonth)
       || enableOutsideDays !== prevEnableOutsideDays
       || firstDayOfWeek !== prevFirstDayOfWeek
     ) {
@@ -125,7 +140,7 @@ class CalendarMonth extends React.PureComponent {
         weeks: getCalendarMonthWeeks(
           month,
           enableOutsideDays,
-          firstDayOfWeek == null ? moment.localeData().firstDayOfWeek() : firstDayOfWeek,
+          firstDayOfWeek == null ? localeData.options.weekStartsOn : firstDayOfWeek,
         ),
       });
     }
@@ -173,10 +188,13 @@ class CalendarMonth extends React.PureComponent {
       renderMonthText,
       styles,
       verticalBorderSpacing,
+      locale,
     } = this.props;
 
     const { weeks } = this.state;
-    const monthTitle = renderMonthText ? renderMonthText(month) : month.format(monthFormat);
+    const monthTitle = renderMonthText
+      ? renderMonthText(month)
+      : format(month, monthFormat, { locale: getLocale(locale) });
 
     const verticalScrollable = orientation === VERTICAL_SCROLLABLE;
 
@@ -224,7 +242,7 @@ class CalendarMonth extends React.PureComponent {
                   key: dayOfWeek,
                   day,
                   daySize,
-                  isOutsideDay: !day || day.month() !== month.month(),
+                  isOutsideDay: !day || getMonth(day) !== getMonth(month),
                   tabIndex: isVisible && isSameDay(day, focusedDate) ? 0 : -1,
                   isFocused,
                   onDayMouseEnter,
@@ -232,7 +250,9 @@ class CalendarMonth extends React.PureComponent {
                   onDayClick,
                   renderDayContents,
                   phrases,
-                  modifiers: modifiers[toISODateString(day)],
+                  modifiers: modifiers[toISODateString(day)] instanceof Set
+                    ? modifiers[toISODateString(day)]
+                    : new Set(),
                   ariaLabelFormat: dayAriaLabelFormat,
                 }))}
               </CalendarWeek>

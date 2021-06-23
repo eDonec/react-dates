@@ -1,9 +1,9 @@
-import moment from 'moment';
-
-import isSameDay from './isSameDay';
+import isDate from 'date-fns/isDate';
+import subDays from 'date-fns/subDays';
+import isSameDay from 'date-fns/isSameDay';
 
 export default function isPreviousDay(a, b) {
-  if (!moment.isMoment(a) || !moment.isMoment(b)) return false;
-  const dayBefore = moment(a).subtract(1, 'day');
+  if (!isDate(a) || !isDate(b)) return false;
+  const dayBefore = subDays(a, 1);
   return isSameDay(dayBefore, b);
 }

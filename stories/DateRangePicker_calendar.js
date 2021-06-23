@@ -1,9 +1,11 @@
 import React from 'react';
-import moment from 'moment';
 import { storiesOf } from '@storybook/react';
 import { withInfo } from '@storybook/addon-info';
 
-import { VERTICAL_ORIENTATION, ANCHOR_RIGHT, OPEN_UP, NAV_POSITION_BOTTOM } from '../src/constants';
+import addMonths from 'date-fns/addMonths';
+import {
+  VERTICAL_ORIENTATION, ANCHOR_RIGHT, OPEN_UP, NAV_POSITION_BOTTOM,
+} from '../src/constants';
 
 import DateRangePickerWrapper from '../examples/DateRangePickerWrapper';
 
@@ -21,9 +23,10 @@ function CustomMonthNav({ children, style }) {
         marginTop: -2,
         top: 19,
         left: 13,
+        outline: 'inherit',
         ...style,
       }}
-      tabindex="0"
+      tabIndex="0"
     >
       {children}
     </div>
@@ -61,8 +64,8 @@ storiesOf('DRP - Calendar Props', module)
   )))
   .add('with 7 days range selection', withInfo()(() => (
     <DateRangePickerWrapper
-      startDateOffset={day => day.subtract(3, 'days')}
-      endDateOffset={day => day.add(3, 'days')}
+      startDateOffset={(day) => day.subtract(3, 'days')}
+      endDateOffset={(day) => day.add(3, 'days')}
     />
   )))
   .add('with custom day size', withInfo()(() => (
@@ -160,7 +163,7 @@ storiesOf('DRP - Calendar Props', module)
   )))
   .add('with month specified on open', withInfo()(() => (
     <DateRangePickerWrapper
-      initialVisibleMonth={() => moment().add(10, 'months')}
+      initialVisibleMonth={() => addMonths(new Date(), 10)}
       autoFocus
     />
   )))
@@ -251,13 +254,6 @@ storiesOf('DRP - Calendar Props', module)
   .add('with custom vertical spacing', withInfo()(() => (
     <DateRangePickerWrapper
       verticalSpacing={0}
-      autoFocus
-    />
-  )))
-  .add('without borders', withInfo()(() => (
-    <DateRangePickerWrapper
-      verticalSpacing={0}
-      noBorder
       autoFocus
     />
   )));

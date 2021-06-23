@@ -1,17 +1,22 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import momentPropTypes from 'react-moment-proptypes';
-import moment from 'moment';
 import omit from 'lodash/omit';
 
 import { withStyles, withStylesPropTypes, css } from 'react-with-styles';
+
+import isSameDay from 'date-fns/isSameDay';
 
 import DateRangePicker from '../src/components/DateRangePicker';
 
 import { DateRangePickerPhrases } from '../src/defaultPhrases';
 import DateRangePickerShape from '../src/shapes/DateRangePickerShape';
-import { START_DATE, END_DATE, HORIZONTAL_ORIENTATION, ANCHOR_LEFT } from '../src/constants';
-import isSameDay from '../src/utils/isSameDay';
+import {
+  START_DATE,
+  END_DATE,
+  HORIZONTAL_ORIENTATION,
+  ANCHOR_LEFT,
+  NAV_POSITION_TOP,
+} from '../src/constants';
 
 const propTypes = {
   ...withStylesPropTypes,
@@ -19,12 +24,12 @@ const propTypes = {
   // example props for the demo
   autoFocus: PropTypes.bool,
   autoFocusEndDate: PropTypes.bool,
-  initialStartDate: momentPropTypes.momentObj,
-  initialEndDate: momentPropTypes.momentObj,
+  initialStartDate: PropTypes.object,
+  initialEndDate: PropTypes.object,
   presets: PropTypes.arrayOf(PropTypes.shape({
     text: PropTypes.string,
-    start: momentPropTypes.momentObj,
-    end: momentPropTypes.momentObj,
+    start: PropTypes.object,
+    end: PropTypes.object,
   })),
 
   ...omit(DateRangePickerShape, [
@@ -70,8 +75,10 @@ const defaultProps = {
   keepOpenOnDateSelect: false,
   reopenPickerOnClearDates: false,
   isRTL: false,
+  locale: null,
 
   // navigation related props
+  navPosition: NAV_POSITION_TOP,
   navPrev: null,
   navNext: null,
   onPrevMonthClick() {},
@@ -83,12 +90,12 @@ const defaultProps = {
   minimumNights: 0,
   enableOutsideDays: false,
   isDayBlocked: () => false,
-  isOutsideRange: day => false,
+  isOutsideRange: (day) => false,
   isDayHighlighted: () => false,
 
   // internationalization
-  displayFormat: () => moment.localeData().longDateFormat('L'),
-  monthFormat: 'MMMM YYYY',
+  displayFormat: () => 'P',
+  monthFormat: 'MMMM yyyy',
   phrases: DateRangePickerPhrases,
 };
 

@@ -1,3 +1,5 @@
+import format from 'date-fns/format';
+
 import getPhrase from './getPhrase';
 import { BLOCKED_MODIFIER } from '../constants';
 
@@ -29,16 +31,19 @@ function getAriaLabel(phrases, modifiers, day, ariaLabelFormat) {
   } = phrases;
 
   const formattedDate = {
-    date: day.format(ariaLabelFormat),
+    date: format(day, ariaLabelFormat),
   };
 
   if (modifiers.has('selected-start') && dateIsSelectedAsStartDate) {
     return getPhrase(dateIsSelectedAsStartDate, formattedDate);
-  } if (modifiers.has('selected-end') && dateIsSelectedAsEndDate) {
+  }
+  if (modifiers.has('selected-end') && dateIsSelectedAsEndDate) {
     return getPhrase(dateIsSelectedAsEndDate, formattedDate);
-  } if (isSelected(modifiers) && dateIsSelected) {
+  }
+  if (isSelected(modifiers) && dateIsSelected) {
     return getPhrase(dateIsSelected, formattedDate);
-  } if (modifiers.has(BLOCKED_MODIFIER)) {
+  }
+  if (modifiers.has(BLOCKED_MODIFIER)) {
     return getPhrase(dateIsUnavailable, formattedDate);
   }
 

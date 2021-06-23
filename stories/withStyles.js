@@ -174,7 +174,6 @@ storiesOf('withStyles', module)
       </div>
     </div>
   )))
-
   .add('DateRangePickerInput', withInfo()(() => (
     <div>
       <div>
